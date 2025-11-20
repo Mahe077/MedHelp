@@ -22,7 +22,7 @@ pharmacy-system/
 |    ├── Dockerfile.dev
 │    ├── Dockerfile.prod
 │    └── ...
-├── backend/                    # Node.js backend API
+├── backend/                    # Java backend API
 |    ├── Dockerfile.dev
 │    ├── Dockerfile.prod
 │    └── ...
@@ -47,7 +47,8 @@ pharmacy-system/
 ### Prerequisites
 
 - Docker & Docker Compose
-- Node.js 18+ (for local development)
+- Java 17+ (for local development)
+- Next.js
 - Git
 
 ### Development Environment
@@ -156,7 +157,7 @@ Each environment includes:
 
 - **PostgreSQL** - Primary database
 - **Redis** - Caching and sessions
-- **Backend API** - Node.js application
+- **Backend API** - Java application
 - **Frontend** - React/Next.js application
 - **Nginx** - Reverse proxy and SSL termination
 
