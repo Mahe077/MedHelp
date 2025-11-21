@@ -1,11 +1,11 @@
-# Pharmacy System - Multi-Environment Setup
+# MedHelp - Multi-Environment Setup
 
-A comprehensive pharmacy management system with production, staging, and development environments built using a monorepo structure with Docker and GitHub Actions.
+A comprehensive medhelp management system with production, staging, and development environments built using a monorepo structure with Docker and GitHub Actions.
 
 ## 🏗️ Project Structure
 
 ```
-pharmacy-system/
+MedHelp/
 ├── .github/
 |    └── workflows/            # CI/CD pipelines
 |        ├── deploy-production.yml
@@ -18,11 +18,11 @@ pharmacy-system/
 │    └── nginx/
 │        ├── nginx.conf
 │        └── ssl/
-├── frontend/                   # React/Next.js frontend
+├── frontend/                   # Next.js frontend
 |    ├── Dockerfile.dev
 │    ├── Dockerfile.prod
 │    └── ...
-├── backend/                    # Java backend API
+├── backend/                    # Spring Boot backend
 |    ├── Dockerfile.dev
 │    ├── Dockerfile.prod
 │    └── ...
@@ -37,9 +37,9 @@ pharmacy-system/
 
 | Branch | Environment | URL | Purpose |
 |--------|-------------|-----|---------|
-| `main` | Production | `pharmacy.com` | Live customer-facing environment |
-| `staging` | Staging | `staging.pharmacy.com` | Pre-production testing |
-| `develop` | Development | `dev.pharmacy.com` | Integration testing |
+| `main` | Production | `medhelp.com` | Live customer-facing environment |
+| `staging` | Staging | `staging.medhelp.com` | Pre-production testing |
+| `develop` | Development | `dev.medhelp.com` | Integration testing |
 | `feature/*` | Feature | Preview URLs | New feature development |
 
 ## 🚀 Quick Start
@@ -47,19 +47,19 @@ pharmacy-system/
 ### Prerequisites
 
 - Docker & Docker Compose
-- Java 17+ (for local development)
-- Next.js
+- Java 17+ (for local backend development)
+- Node.js 18+ (for local frontend development)
 - Git
 
 ### Development Environment
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/pharmacy-system.git
-cd pharmacy-system
+git clone https://github.com/MedHelp.git
+cd MedHelp
 
 # Switch to develop branch
-git checkout develop
+git checkout dev
 
 # Setup environment (creates .env files from examples)
 chmod +x scripts/setup.sh
@@ -73,8 +73,9 @@ docker-compose -f docker/docker-compose.dev.yml up -d
 
 # Access the application
 # Frontend: http://localhost:3000
-# Backend API: http://localhost:3001
+# Backend API: http://localhost:8080
 # Database: localhost:5432
+# Redis: localhost:6379
 ```
 
 ### Staging Environment
@@ -82,7 +83,7 @@ docker-compose -f docker/docker-compose.dev.yml up -d
 ```bash
 git checkout staging
 docker-compose -f docker/docker-compose.staging.yml up -d
-# Access: http://staging.pharmacy.com
+# Access: http://staging.medhelp.com
 ```
 
 ### Production Environment
@@ -90,23 +91,37 @@ docker-compose -f docker/docker-compose.staging.yml up -d
 ```bash
 git checkout main
 docker-compose -f docker/docker-compose.prod.yml up -d
-# Access: https://pharmacy.com
+# Access: https://medhelp.com
 ```
 
 ## ⚙️ Configuration
 
 ### Environment Variables
 
-Copy and configure environment files for each environment:
-
+Backend Spring Boot Configuration:
+```bash
+# application-development.properties
+# application-staging.properties  
+# application-production.properties
+```
+Frontend Next.js Configuration:
+```bash
+# .env.development
+# .env.staging
+# .env.production
+```
+Copy and configure environment files:
 ```bash
 # Development
+cp backend/src/main/resources/application-dev.properties.example backend/src/main/resources/application-dev.properties
 cp .env.development.example .env.development
 
-# Staging  
+# Staging
+cp backend/src/main/resources/application-staging.properties.example backend/src/main/resources/application-staging.properties
 cp .env.staging.example .env.staging
 
 # Production
+cp backend/src/main/resources/application-prod.properties.example backend/src/main/resources/application-prod.properties
 cp .env.production.example .env.production
 ```
 
@@ -117,7 +132,24 @@ cp .env.production.example .env.production
 - SSL certificates
 - API keys and external services
 
-### Docker Configuration
+## 🐳 Docker Services
+
+Each environment includes:
+
+- **PostgreSQL** - Primary database
+- **Redis** - Caching and sessions
+- **Backend API** - Java application
+- **Frontend** - React/Next.js application
+- **Nginx** - Reverse proxy and SSL termination
+
+### Service Ports
+
+| Service | Development | Staging | Production |
+|---------|-------------|---------|------------|
+| Frontend | 3000 | 80 | 443 (SSL) |
+| Backend | 3001 | 3000 | 3000 |
+| PostgreSQL | 5432 | Internal | Internal |
+| Redis | 6379 | Internal | Internal |
 
 Each environment has its own Docker Compose file:
 
@@ -150,25 +182,6 @@ docker-compose -f docker/docker-compose.staging.yml up -d --build
 docker-compose -f docker/docker-compose.prod.yml down
 docker-compose -f docker/docker-compose.prod.yml up -d --build
 ```
-
-## 🐳 Docker Services
-
-Each environment includes:
-
-- **PostgreSQL** - Primary database
-- **Redis** - Caching and sessions
-- **Backend API** - Java application
-- **Frontend** - React/Next.js application
-- **Nginx** - Reverse proxy and SSL termination
-
-### Service Ports
-
-| Service | Development | Staging | Production |
-|---------|-------------|---------|------------|
-| Frontend | 3000 | 80 | 443 (SSL) |
-| Backend | 3001 | 3000 | 3000 |
-| PostgreSQL | 5432 | Internal | Internal |
-| Redis | 6379 | Internal | Internal |
 
 ## 📊 Health Checks
 
