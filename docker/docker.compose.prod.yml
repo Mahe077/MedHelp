@@ -1,0 +1,93 @@
+# need to be checked and updated accordingly.
+version: '3.8'
+
+services:
+  postgres-prod:
+    image: postgres:15-alpine
+    container_name: postgres-prod
+    environment:
+      POSTGRES_DB: pharmacy_prod
+      POSTGRES_USER: pharmacy_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./postgres/backups:/backups
+    networks:
+      - pharmacy-prod
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pharmacy_user"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis-prod:
+    image: redis:7-alpine
+    container_name: redis-prod
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_prod_data:/data
+    networks:
+      - pharmacy-prod
+    restart: unless-stopped
+
+  backend-prod:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.prod
+    container_name: backend-prod
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+    env_file:
+      - ../.env.production
+    networks:
+      - pharmacy-prod
+    depends_on:
+      - postgres-prod
+      - redis-prod
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend-prod:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.prod
+    container_name: frontend-prod
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ../.env.production
+    networks:
+      - pharmacy-prod
+    depends_on:
+      - backend-prod
+    restart: unless-stopped
+
+  nginx-prod:
+    image: nginx:alpine
+    container_name: nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - pharmacy-prod
+    depends_on:
+      - frontend-prod
+      - backend-prod
+    restart: unless-stopped
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:
+
+networks:
+  pharmacy-prod:
+    driver: bridge
