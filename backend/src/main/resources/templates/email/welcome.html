@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to MedHelp!</h1>
+    </div>
+    <div class="content">
+        <p>Hello <strong th:text="${userName}">User</strong>,</p>
+        
+        <p>Thank you for joining MedHelp! We're excited to have you on board.</p>
+        
+        <p>Your account (<strong th:text="${email}">email@example.com</strong>) has been successfully created.</p>
+        
+        <p>With MedHelp, you can:</p>
+        <ul>
+            <li>Manage patient records efficiently</li>
+            <li>Track medical history and appointments</li>
+            <li>Collaborate with your healthcare team</li>
+            <li>Access secure, HIPAA-compliant data storage</li>
+        </ul>
+        
+        <p>If you have any questions or need assistance, please don't hesitate to reach out to our support team.</p>
+        
+        <p>Best regards,<br>The MedHelp Team</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 MedHelp. All rights reserved.</p>
+    </div>
+</body>
+</html>

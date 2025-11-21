@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import {useAuth} from "@/context/auth-context";
+import { useAuth } from "@/context/auth-context";
 
 export function UserMenu() {
   const { user, logout } = useAuth()
@@ -31,14 +31,14 @@ export function UserMenu() {
         <Button variant="ghost" className="relative h-10 w-10 rounded-full ">
           <Avatar className="h-10 w-10">
             {/*<AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />*/}
-            <AvatarFallback className="bg-primary/20">{user.username.slice(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback className="bg-primary/20">{user.email.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-white">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.username}</p>
+            <p className="text-sm font-medium leading-none">{user.email}</p>
             <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             <p className="text-xs leading-none text-primary font-semibold mt-1">
               {user.userType.charAt(0).toUpperCase() + user.userType.slice(1)}

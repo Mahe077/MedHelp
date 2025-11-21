@@ -1,24 +1,22 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: pharmacy-postgres-dev
+    container_name: medhelp-postgres-dev
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-pharmacy_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-pharmacy_pass}
-      POSTGRES_DB: ${DB_NAME:-pharmacy_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${DB_NAME:-medhelp}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ./volumes/postgres:/var/lib/postgresql/data
       - ../backend/src/main/resources/db/migration:/docker-entrypoint-initdb.d
     networks:
-      - pharmacy-network
+      - medhelp-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pharmacy_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +24,7 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: pharmacy-redis-dev
+    container_name: medhelp-redis-dev
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -34,7 +32,7 @@ services:
       - ./volumes/redis:/data
     command: redis-server --appendonly yes
     networks:
-      - pharmacy-network
+      - medhelp-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -46,44 +44,42 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile.dev
-    container_name: pharmacy-backend-dev
+    container_name: medhelp-backend-dev
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-pharmacy_db}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-pharmacy_user}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-pharmacy_pass}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-medhelp}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgrespassword}
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       SERVER_PORT: 8080
     ports:
       - "8080:8080"
       - "5005:5005"  # Debug port
     volumes:
       - ../backend:/app
-      - ~/.m2:/root/.m2  # Maven cache (or ~/.gradle for Gradle)
-      - ./volumes/uploads:/app/uploads
+      - ~/.m2:/root/.m2
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - pharmacy-network
-    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+      - medhelp-network
+    command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
 
   # Next.js Frontend
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile.dev
-    container_name: pharmacy-frontend-dev
+    container_name: medhelp-frontend-dev
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
       NODE_ENV: development
+      HOST: 0.0.0.0
     ports:
       - "3000:3000"
     volumes:
@@ -93,11 +89,9 @@ services:
     depends_on:
       - backend
     networks:
-      - pharmacy-network
+      - medhelp-network
     command: npm run dev
 
 networks:
-  pharmacy-network:
+  medhelp-network:
     driver: bridge
-
-volumes:

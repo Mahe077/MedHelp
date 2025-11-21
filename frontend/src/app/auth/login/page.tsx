@@ -1,26 +1,26 @@
 "use client";
 
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
-import {FormEvent, useEffect, useState} from "react";
-import {useAuth} from "@/context/auth-context";
-import {useRouter} from "next/navigation";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { FormEvent, useEffect, useState } from "react";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {FormHeader} from "@/components/common/app-form/form-header";
-import {FormFooter} from "@/components/common/app-form/form-footer";
-import {motion} from "motion/react";
-import {AppCard} from "@/components/common/app-form/app-card";
-import {AppFormBody} from "@/components/common/app-form/app-form-body";
-import {AppButton} from "@/components/common/app-button";
-import {Eye, EyeOff} from "lucide-react";
+import { FormHeader } from "@/components/common/app-form/form-header";
+import { FormFooter } from "@/components/common/app-form/form-footer";
+import { motion } from "motion/react";
+import { AppCard } from "@/components/common/app-form/app-card";
+import { AppFormBody } from "@/components/common/app-form/app-form-body";
+import { AppButton } from "@/components/common/app-button";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-    const [username, setUsername] = useState("")
+    const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false);
-    const {login, isAuthenticated} = useAuth()
+    const { login, isAuthenticated } = useAuth()
     const router = useRouter()
 
     useEffect(() => {
@@ -35,8 +35,16 @@ export default function LoginPage() {
         setIsLoading(true)
 
         try {
-            await login(username, password)
-            router.push("/dashboard")
+            const result = await login(email, password)
+
+            // Check if 2FA is required
+            if (result?.mfaRequired && result?.sessionId) {
+                // Redirect to 2FA page with session ID
+                router.push(`/auth/verify-2fa?session=${result.sessionId}`)
+            } else {
+                // No 2FA - proceed to dashboard
+                router.push("/dashboard")
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Login failed. Please try again.")
         } finally {
@@ -49,8 +57,8 @@ export default function LoginPage() {
             className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
             <div className="w-full max-w-md">
                 <motion.div
-                    initial={{opacity: 0, y: 10}}
-                    animate={{opacity: 1, y: 0}}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="w-full max-w-md"
                 >
                     <FormHeader
@@ -67,17 +75,17 @@ export default function LoginPage() {
                         footerHref="/auth/signup"
                     >
                         <AppFormBody handleSubmit={handleSubmit} error={error}>
-                            {/* Username Field */}
+                            {/* Email Field */}
                             <div className="space-y-2">
-                                <Label htmlFor="username" className="text-foreground font-medium">
-                                    Username
+                                <Label htmlFor="email" className="text-foreground font-medium">
+                                    Email
                                 </Label>
                                 <Input
-                                    id="username"
-                                    type="username"
+                                    id="email"
+                                    type="email"
                                     placeholder="you@example.com"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
                                     className="bg-input border-border focus:ring-primary"
                                 />
@@ -106,7 +114,7 @@ export default function LoginPage() {
                                         className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
-                                        {showPassword ? <EyeOff size={20}/> : <Eye size={20}/>}
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
                             </div>
@@ -129,7 +137,7 @@ export default function LoginPage() {
                         </AppFormBody>
                     </AppCard>
 
-                    <FormFooter/>
+                    <FormFooter />
                 </motion.div>
             </div>
         </div>

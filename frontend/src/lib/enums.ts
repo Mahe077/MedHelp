@@ -29,38 +29,11 @@ export interface UserType {
 
 export interface User {
     id: string
-    username: string
     email: string
-    fullname: string
-    phone: string
-    dateOfBirth: Date
-    gender: string
-    address: string
-    city: string
-    state: string
-    postalCode: string
-    employeeId: string
-    licenseNumber: string
-    licenseExpiry: Date
-    qualification: string
-    specialization: string
-    yearsOfExperience: number
-    dateOfJoining: Date
-    branchId: string
-    branchName: string
     roles: string[]
-    status: keyof UserStatus
-    isEmailVerified: boolean
-    isPhoneVerified: boolean
-    twoFactorEnabled: boolean
-    lastLogin: Date | null
-    profileImageUrl: string | null
-    createdAt: Date
-    updatedAt: Date
-    userType: keyof UserType
-    customerId: string | null
-    loyaltyCardNumber: string | null
-    loyaltyPoints: number | null
-    memberSince: Date | null
     permissions: string[]
+    branchName: string
+    userType: "INTERNAL" | "EXTERNAL"
+    isTwoFactorEnabled: boolean
+    // ... other fields can remain or be optional if not returned by /me yet
 }

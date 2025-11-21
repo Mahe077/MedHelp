@@ -1,16 +1,17 @@
 "use client";
 
 import { User } from "@/lib/enums";
-import React, {useCallback, useEffect} from "react";
-import {initializeApiClient} from "@/lib/api-client";
+import React, { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {apiLogin, apiRefresh, apiResetPassword} from "@/lib/apis/auth";
+import apiClient from "@/lib/api/client";
+import { getDeviceFingerprint } from "@/lib/device-fingerprint";
+import { setAccessToken, clearAccessToken, getAccessToken } from "@/lib/api/client";
 
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ mfaRequired?: boolean; sessionId?: string }>;
   resetPassword: (resetToken: string, password: string) => Promise<void>;
   logout: () => void;
   hasPermission: (permissionName: string) => boolean;
@@ -24,79 +25,89 @@ export const AuthContext = React.createContext<AuthContextType | undefined>(
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
-  const [accessToken, setAccessToken] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const router = useRouter();
 
-  const getAccessToken = useCallback((): string | null => {
-    return accessToken;
-  }, [accessToken]);
-
-  const getRefreshToken = (): string | null => {
-    return sessionStorage.getItem("refreshToken");
-  };
-
-  const logout = useCallback(() => {
-    setUser(null);
-    setAccessToken(null);
-    sessionStorage.removeItem("refreshToken");
-    router.push("/auth/login");
-  }, [router]);
-
+  // Initialize - try to refresh token on mount
   useEffect(() => {
-    initializeApiClient(getAccessToken, getRefreshToken, logout, setAccessToken);
     const initializeAuth = async () => {
-      const storedRefreshToken = getRefreshToken();
-      if (storedRefreshToken && storedRefreshToken !== "undefined") {
-        try {
-          const { accessToken } = await apiRefresh(storedRefreshToken);
-          setAccessToken(accessToken);
-          const storedUser = sessionStorage.getItem("user");
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-          }
-          // You might want to fetch the user profile here as well
-          // const user = await apiGetUserProfile(accessToken);
-          // setUser(user);
-        } catch (error) {
-            console.error("Refresh token failed:", error);
-          // Not logged in or refresh failed
-          logout();
-        }
+      try {
+        // Attempt to refresh using HttpOnly cookie
+        const { data } = await apiClient.post('/auth/refresh');
+        setAccessToken(data.accessToken);
+        setUser(data.user);
+      } catch (error) {
+        // No valid session - user needs to login
+        clearAccessToken();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
-    initializeAuth();
-  }, [getAccessToken, logout]);
 
-  const login = async (email: string, password: string) => {
+    initializeAuth();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<{ mfaRequired?: boolean; sessionId?: string }> => {
     setIsLoading(true);
     try {
-      const { user, accessToken, refreshToken } = await apiLogin(email, password);
-      setUser(user);
-      setAccessToken(accessToken);
-      sessionStorage.setItem("refreshToken", refreshToken);
-      sessionStorage.setItem("user", JSON.stringify(user));
+      const deviceFingerprint = await getDeviceFingerprint();
+
+      const { data } = await apiClient.post('/auth/login', {
+        email,
+        password,
+        deviceFingerprint,
+      });
+
+      // Check if 2FA is required
+      if (data.mfaRequired) {
+        setIsLoading(false);
+        return { mfaRequired: true, sessionId: data.sessionId };
+      }
+
+      // No 2FA - set tokens and user
+      setAccessToken(data.accessToken);
+      setUser(data.user);
+      setIsLoading(false);
+
+      return {};
     } catch (error) {
+      setIsLoading(false);
       console.error("Login failed:", error);
       throw error;
-    }
-    finally {
-      setIsLoading(false);
     }
   };
 
   const resetPassword = async (resetToken: string, password: string) => {
     setIsLoading(true);
     try {
-      await apiResetPassword(resetToken, password);
+      await apiClient.post('/auth/reset-password', {
+        token: resetToken,
+        newPassword: password,
+      });
     } catch (error) {
       console.error("Reset password failed:", error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+
+  const logout = useCallback(() => {
+    const performLogout = async () => {
+      try {
+        await apiClient.post('/auth/logout');
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        clearAccessToken();
+        setUser(null);
+        router.push("/auth/login");
+      }
+    };
+
+    performLogout();
+  }, [router]);
 
   const hasPermission = (permissionName: string): boolean => {
     if (!user || !user.permissions) return false;
@@ -105,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasRole = (roleName: string): boolean => {
     if (!user) return false;
-    return user.roles.some((role) => role.name === roleName);
+    return user.roles.some((role) => role === roleName);
   };
 
   const isAuthenticated = !!user;

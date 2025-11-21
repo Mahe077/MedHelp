@@ -7,13 +7,13 @@ import {
     SidebarMenuButton,
     SidebarMenuItem
 } from "@/components/ui/sidebar";
-import {useAuth} from "@/context/auth-context";
-import {AlertCircle, BarChart3, FileText, LayoutDashboard, Package, Settings, Users} from "lucide-react";
-import {UserMenu} from "@/components/common/user-menu";
+import { useAuth } from "@/context/auth-context";
+import { AlertCircle, BarChart3, FileText, LayoutDashboard, Package, Settings, Users } from "lucide-react";
+import { UserMenu } from "@/components/common/user-menu";
 import Link from "next/link";
-import {usePathname} from "next/navigation";
-import {cn} from "@/lib/utils";
-import {UserRole} from "@/lib/enums";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { UserRole } from "@/lib/enums";
 
 interface NavItem {
     title: string
@@ -23,10 +23,10 @@ interface NavItem {
 }
 
 export function DashboardSidebar() {
-    const {user, isLoading} = useAuth();
+    const { user, isLoading } = useAuth();
     const pathname = usePathname();
 
-// ✅ Fixed active state logic
+    // ✅ Fixed active state logic
     const isActive = (href: string) => {
         // Exact match for dashboard root
         if (href === "/dashboard") {
@@ -43,52 +43,52 @@ export function DashboardSidebar() {
     const navigationItems: NavItem[] = [
         {
             title: "Overview",
-            icon: <LayoutDashboard className="h-4 w-4"/>,
+            icon: <LayoutDashboard className="h-4 w-4" />,
             href: "/dashboard",
         },
         {
             title: "Inventory",
-            icon: <Package className="h-4 w-4"/>,
+            icon: <Package className="h-4 w-4" />,
             href: "/dashboard/inventory",
             entity: "product", // Example entity
         },
         {
             title: "Customers",
-            icon: <Users className="h-4 w-4"/>,
+            icon: <Users className="h-4 w-4" />,
             href: "/dashboard/customers",
             entity: "user", // Example entity
         },
         {
             title: "Prescriptions",
-            icon: <FileText className="h-4 w-4"/>,
+            icon: <FileText className="h-4 w-4" />,
             href: "/dashboard/prescriptions",
             entity: "prescription", // Example entity
         },
         {
             title: "Invoices",
-            icon: <FileText className="h-4 w-4"/>,
+            icon: <FileText className="h-4 w-4" />,
             href: "/dashboard/invoices",
             entity: "invoice", // Example entity
         },
         {
             title: "Reports",
-            icon: <BarChart3 className="h-4 w-4"/>,
+            icon: <BarChart3 className="h-4 w-4" />,
             href: "/dashboard/reports",
             entity: "report", // Example entity
         },
         {
             title: "Alerts",
-            icon: <AlertCircle className="h-4 w-4"/>,
+            icon: <AlertCircle className="h-4 w-4" />,
             href: "/dashboard/alerts",
             entity: "alert", // Example entity
         },
     ]
 
-    const visibleItems = navigationItems.filter(({entity}) => {
+    const visibleItems = navigationItems.filter(({ entity }) => {
         if (!entity) return true; // item visible to everyone
         if (!user || !user.permissions) return false;
 
-        if(user.roles.includes(UserRole.ADMIN)) return true;
+        if (user.roles.includes(UserRole.ADMIN)) return true;
 
         // Check if the user has any permission for the given entity
         return user.permissions.some((permission) =>
@@ -141,7 +141,7 @@ export function DashboardSidebar() {
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild tooltip="Settings">
                             <Link href="#" className="flex items-center gap-2 text-primary-foreground">
-                                <Settings className="h-4 w-4"/>
+                                <Settings className="h-4 w-4" />
                                 <span>Settings</span>
                             </Link>
                         </SidebarMenuButton>
@@ -149,10 +149,10 @@ export function DashboardSidebar() {
                 </SidebarMenu>
                 <div className="flex items-center justify-between px-2 py-2 border-t border-sidebar-border">
                     <div className="text-xs text-sidebar-foreground/70">
-                        <p className="font-medium">{user?.username}</p>
+                        <p className="font-medium">{user?.email}</p>
                         <p className="capitalize">{user?.userType}</p>
                     </div>
-                    <UserMenu/>
+                    <UserMenu />
                 </div>
             </SidebarFooter>
         </Sidebar>

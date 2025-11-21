@@ -11,9 +11,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AppButton } from "@/components/common/app-button";
-import {apiResendVerificationEmail} from "@/lib/apis/auth";
+import { apiResendVerificationEmail } from "@/lib/apis/auth";
 
-const ValidateEmailPage = () => {
+import { Suspense } from "react";
+
+const ValidateEmailContent = () => {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
@@ -106,6 +108,14 @@ const ValidateEmailPage = () => {
         </motion.div>
       </div>
     </div>
+  );
+};
+
+const ValidateEmailPage = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ValidateEmailContent />
+    </Suspense>
   );
 };
 

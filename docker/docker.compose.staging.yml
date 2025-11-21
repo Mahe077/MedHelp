@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  postgres-staging:
+    image: postgres:15-alpine
+    container_name: postgres-staging
+    environment:
+      POSTGRES_DB: pharmacy_staging
+      POSTGRES_USER: pharmacy_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    networks:
+      - pharmacy-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pharmacy_user"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis-staging:
+    image: redis:7-alpine
+    container_name: redis-staging
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_staging_data:/data
+    networks:
+      - pharmacy-staging
+    restart: unless-stopped
+
+  backend-staging:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.prod
+    container_name: backend-staging
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-staging:5432/medhelp_staging
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-postgrespassword}
+      - APPLICATION_SECURITY_JWT_SECRET_KEY=${JWT_SECRET}
+    networks:
+      - pharmacy-staging
+    depends_on:
+      - postgres-staging
+      - redis-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend-staging:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: http://staging-api.medhelp.com/api/v1
+    container_name: frontend-staging
+    environment:
+      - NODE_ENV=production
+    networks:
+      - pharmacy-staging
+    depends_on:
+      - backend-staging
+    restart: unless-stopped
+
+networks:
+  pharmacy-staging:
+    driver: bridge
+
+volumes:
+  postgres_staging_data:
+  redis_staging_data:

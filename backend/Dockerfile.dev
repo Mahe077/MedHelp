@@ -1,21 +1,22 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jdk
  
 WORKDIR /app
 
-COPY mvnw .
-COPY .mvn .mvn
-RUN chmod +x mvnw
+# Install Maven
+RUN apt-get update && \
+    apt-get install -y maven && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy pom.xml and download dependencies
+# Copy pom.xml and source code
 COPY pom.xml .
-RUN ./mvnw dependency:go-offline -B
-
-# Copy source code
 COPY src ./src
 
-RUN ./mvnw clean package -DskipTests
+# Dependencies will be downloaded on first mvn run
+
+# Build without tests for faster development
+RUN mvn clean package -DskipTests
 
 EXPOSE 8080 5005
 
-# Run with hot reload (spring-boot-devtools)
-CMD ["./mvnw", "spring-boot:run", "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"]
+# Run with hot reload (spring-boot-devtools) and remote debugging
+CMD ["mvn", "spring-boot:run", "-Dspring-boot.run.jvmArguments=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"]

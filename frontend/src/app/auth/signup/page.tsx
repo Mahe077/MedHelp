@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateUserInput, CreateUserSchema } from "@/lib/validation-schemas";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { AppCard } from "@/components/common/app-form/app-card";
 import { FormFooter } from "@/components/common/app-form/form-footer";
 import { motion } from "motion/react";
 import { AppButton } from "@/components/common/app-button";
-import { Eye, EyeOff} from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { AppFormBody } from "@/components/common/app-form/app-form-body";
 import {
     Select,
@@ -24,9 +24,9 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { AppCalendar } from "@/components/common/app-calendar";
-import {PasswordStrengthIndicator} from "@/components/common/password-strength-indicator";
-import {usePasswordValidationRules} from "@/hooks/usePasswordValidationRules";
-import {apiSignup} from "@/lib/apis/auth";
+import { PasswordStrengthIndicator } from "@/components/common/password-strength-indicator";
+import { usePasswordValidationRules } from "@/hooks/usePasswordValidationRules";
+import { apiSignup } from "@/lib/apis/auth";
 
 type Step = 1 | 2 | 3;
 
@@ -46,12 +46,11 @@ export default function SignupPage() {
         trigger,
         control,
         watch,
-    } = useForm<CreateUserInput>({
+    } = useForm<Partial<CreateUserInput>>({
         resolver: zodResolver(CreateUserSchema),
         mode: "onChange",
         defaultValues: {
-            userType: "CUSTOMER",
-            roles: ["CUSTOMER"],
+            role: "PATIENT",
         },
     });
 
@@ -61,7 +60,7 @@ export default function SignupPage() {
         const fields: (keyof CreateUserInput)[] =
             step === 1
                 ? ["username", "email", "password"]
-                : ["fullName", "phone", "dateOfBirth", "gender"];
+                : ["firstName", "lastName", "phone", "dateOfBirth", "gender"];
         const isValid = await trigger(fields);
         if (isValid) {
             setStep((prev) => (prev < 3 ? prev + 1 : prev) as Step);
@@ -72,12 +71,12 @@ export default function SignupPage() {
         setStep((prev) => (prev > 1 ? prev - 1 : prev) as Step);
     };
 
-    const onSubmit = async (data: CreateUserInput) => {
+    const onSubmit: SubmitHandler<CreateUserInput> = async (data) => {
         setIsLoading(true);
         setError("");
         try {
             await apiSignup(data);
-            router.push(`/auth/validate-email?email=${data.email}`);
+            router.push(`/ auth / validate - email ? email = ${data.email} `);
         } catch (err) {
             setError(
                 err instanceof Error ? err.message : "Registration failed. Please try again."
@@ -136,20 +135,20 @@ export default function SignupPage() {
                                     <div className="space-y-2">
                                         <Label htmlFor="password" className="text-foreground font-medium">Password</Label>
                                         <div className="relative">
-                                        <Input
-                                            id="password"
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="••••••••"
-                                            {...register("password")}
-                                            className="bg-input border-border focus:ring-primary"
-                                        />
-                                        <button
-                                            type="button"
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                        >
-                                            {showPassword ? <EyeOff size={20}/> : <Eye size={20}/>}
-                                        </button>
+                                            <Input
+                                                id="password"
+                                                type={showPassword ? "text" : "password"}
+                                                placeholder="••••••••"
+                                                {...register("password")}
+                                                className="bg-input border-border focus:ring-primary"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                            >
+                                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                            </button>
                                         </div>
                                         {errors.password && (
                                             <p className="text-red-500 text-sm">{errors.password.message}</p>
@@ -164,16 +163,29 @@ export default function SignupPage() {
 
                             {step === 2 && (
                                 <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="fullName" className="text-foreground font-medium">Full Name</Label>
-                                        <Input
-                                            id="fullName"
-                                            {...register("fullName")}
-                                            placeholder="Denial Asher"
-                                        />
-                                        {errors.fullName && (
-                                            <p className="text-red-500 text-sm">{errors.fullName.message}</p>
-                                        )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="firstName" className="text-foreground font-medium">First Name</Label>
+                                            <Input
+                                                id="firstName"
+                                                {...register("firstName")}
+                                                placeholder="Denial"
+                                            />
+                                            {errors.firstName && (
+                                                <p className="text-red-500 text-sm">{errors.firstName.message}</p>
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="lastName" className="text-foreground font-medium">Last Name</Label>
+                                            <Input
+                                                id="lastName"
+                                                {...register("lastName")}
+                                                placeholder="Asher"
+                                            />
+                                            {errors.lastName && (
+                                                <p className="text-red-500 text-sm">{errors.lastName.message}</p>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="phone" className="text-foreground font-medium">Phone</Label>

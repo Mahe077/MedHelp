@@ -1,17 +1,19 @@
 "use client";
 
-import {useState, useEffect, useRef, useCallback} from "react";
-import {useSearchParams, useRouter} from "next/navigation";
-import {AppCard} from "@/components/common/app-form/app-card";
-import {FormHeader} from "@/components/common/app-form/form-header";
-import {AppDiv} from "@/components/common/app-div";
-import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
-import {CheckCircle2, AlertCircle, Loader} from "lucide-react";
-import {motion} from "motion/react";
-import {AppButton} from "@/components/common/app-button";
-import {apiVerifyEmail} from "@/lib/apis/auth";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { AppCard } from "@/components/common/app-form/app-card";
+import { FormHeader } from "@/components/common/app-form/form-header";
+import { AppDiv } from "@/components/common/app-div";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckCircle2, AlertCircle, Loader } from "lucide-react";
+import { motion } from "motion/react";
+import { AppButton } from "@/components/common/app-button";
+import { apiVerifyEmail } from "@/lib/apis/auth";
 
-const VerifyEmailPage = () => {
+import { Suspense } from "react";
+
+const VerifyEmailContent = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const initialToken = searchParams.get("token");
@@ -56,8 +58,8 @@ const VerifyEmailPage = () => {
             className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
             <div className="w-full max-w-md">
                 <motion.div
-                    initial={{opacity: 0, y: 10}}
-                    animate={{opacity: 1, y: 0}}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="w-full max-w-md"
                 >
                     <FormHeader
@@ -68,47 +70,55 @@ const VerifyEmailPage = () => {
                         <AppDiv motionKey="success">
                             {status === "loading" && (
                                 <div className="flex flex-col items-center justify-center space-y-4">
-                                    <Loader className="h-12 w-12 animate-spin text-primary"/>
+                                    <Loader className="h-12 w-12 animate-spin text-primary" />
                                     <p className="text-muted-foreground">Verifying...</p>
                                 </div>
                             )}
 
                             {status === "success" && (
                                 <><Alert variant="success" className={"mb-4"}>
-                                    <CheckCircle2 className="h-5 w-5"/>
+                                    <CheckCircle2 className="h-5 w-5" />
                                     <AlertTitle>Verification Successful!</AlertTitle>
                                     <AlertDescription>{message}</AlertDescription>
                                 </Alert>
                                     <AppButton
-                                    isLoading={false}
-                                    loadingText={"Signing up..."}
-                                    disabled={false}
-                                    onClick={async () => { await router.push("/auth/login"); }}
-                                >
+                                        isLoading={false}
+                                        loadingText={"Signing up..."}
+                                        disabled={false}
+                                        onClick={async () => { await router.push("/auth/login"); }}
+                                    >
                                         Go to Login
-                                </AppButton></>
+                                    </AppButton></>
                             )}
 
                             {status === "error" && (
                                 <><Alert variant="destructive" className="mb-4">
-                                    <AlertCircle className="h-5 w-5"/>
+                                    <AlertCircle className="h-5 w-5" />
                                     <AlertTitle>Verification Failed</AlertTitle>
                                     <AlertDescription>{message}</AlertDescription>
                                 </Alert>
                                     <AppButton
-                                    isLoading={false}
-                                    loadingText={"Signing up..."}
-                                    disabled={false}
-                                    onClick={async () => { await router.push("/auth/signup"); }}
-                                >
-                                    Back to Signup
-                                </AppButton></>
+                                        isLoading={false}
+                                        loadingText={"Signing up..."}
+                                        disabled={false}
+                                        onClick={async () => { await router.push("/auth/signup"); }}
+                                    >
+                                        Back to Signup
+                                    </AppButton></>
                             )}
                         </AppDiv>
                     </AppCard>
                 </motion.div>
             </div>
         </div>
+    );
+};
+
+const VerifyEmailPage = () => {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <VerifyEmailContent />
+        </Suspense>
     );
 };
 

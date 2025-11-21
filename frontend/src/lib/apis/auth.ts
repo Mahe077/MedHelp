@@ -2,15 +2,15 @@ import {User} from "@/lib/enums";
 import {CreateUserInput} from "@/lib/validation-schemas";
 
 export async function apiLogin(
-    usernameOrEmail: string,
+    email: string,
     password: string
-): Promise<{ user: User; accessToken: string; refreshToken: string }> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+): Promise<{ accessToken: string; refreshToken: string; mfaEnabled: boolean; secretImageUri?: string }> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/authenticate`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({usernameOrEmail, password}),
+        body: JSON.stringify({email, password}),
     });
 
     if (!response.ok) {
@@ -18,10 +18,42 @@ export async function apiLogin(
         throw new Error(errorData.message || "Login failed");
     }
 
-    const responseData = await response.json();
-    const {user, accessToken, refreshToken, permissions} = responseData.data;
-    user.permissions = permissions;
-    return {user, accessToken, refreshToken};
+    return await response.json();
+}
+
+export async function apiVerify(
+    email: string,
+    code: string
+): Promise<{ accessToken: string; refreshToken: string; mfaEnabled: boolean }> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({email, code}),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Verification failed");
+    }
+
+    return await response.json();
+}
+
+export async function apiMe(accessToken: string): Promise<User> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch user details");
+    }
+
+    return await response.json();
 }
 
 export async function apiRefresh(refreshToken: string): Promise<{ accessToken: string, user: User }> {

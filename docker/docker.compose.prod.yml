@@ -38,8 +38,10 @@ services:
     container_name: backend-prod
     environment:
       - SPRING_PROFILES_ACTIVE=production
-    env_file:
-      - ../.env.production
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-prod:5432/medhelp_prod
+      - SPRING_DATASOURCE_USERNAME=${DB_USER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-postgrespassword}
+      - APPLICATION_SECURITY_JWT_SECRET_KEY=${JWT_SECRET}
     networks:
       - pharmacy-prod
     depends_on:
@@ -56,11 +58,11 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile.prod
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
     container_name: frontend-prod
     environment:
       - NODE_ENV=production
-    env_file:
-      - ../.env.production
     networks:
       - pharmacy-prod
     depends_on:
