@@ -6,6 +6,7 @@ export function middleware(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth');
   const isPublicPage = request.nextUrl.pathname === '/' || 
                        request.nextUrl.pathname.startsWith('/auth') ||
+                       request.nextUrl.pathname.startsWith('/reset-password') ||
                        request.nextUrl.pathname.startsWith('/_next') ||
                        request.nextUrl.pathname.startsWith('/api');
   
@@ -16,8 +17,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
   
-  // If logged in trying to access auth pages (except logout)
-  if (refreshToken && isAuthPage && !request.nextUrl.pathname.includes('logout')) {
+  // If logged in trying to access auth pages (except logout and reset-password)
+  if (refreshToken && isAuthPage && !request.nextUrl.pathname.includes('logout') && !request.nextUrl.pathname.includes('reset-password')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

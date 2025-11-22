@@ -51,6 +51,10 @@ docker-compose -f docker.compose.dev.yml down
 docker-compose -f docker.compose.dev.yml up --build -d
 ```
 
+### Clear Cache
+```bash
+docker compose -f docker/docker.compose.dev.yml down frontend && docker compose -f docker/docker.compose.dev.yml up -d frontend
+```
 ## Access Points
 
 - **Frontend**: http://localhost:3000

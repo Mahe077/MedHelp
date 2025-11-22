@@ -28,8 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> register(
             @Valid @RequestBody RegisterRequest request,
             HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse
-    ) {
+            HttpServletResponse httpResponse) {
         return ResponseEntity.ok(authenticationService.register(request, httpRequest, httpResponse));
     }
 
@@ -37,32 +36,29 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse
-    ) {
+            HttpServletResponse httpResponse) {
         return ResponseEntity.ok(authenticationService.login(request, httpRequest, httpResponse));
     }
 
     @PostMapping("/verify-2fa")
     public ResponseEntity<LoginResponse> verify2FA(
             @Valid @RequestBody Verify2FARequest request,
-            HttpServletResponse httpResponse
-    ) {
-        return ResponseEntity.ok(authenticationService.verify2FA(request.getSessionId(), request.getCode(), httpResponse));
+            HttpServletResponse httpResponse) {
+        return ResponseEntity
+                .ok(authenticationService.verify2FA(request.getSessionId(), request.getCode(), httpResponse));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(
             HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse
-    ) {
+            HttpServletResponse httpResponse) {
         return ResponseEntity.ok(authenticationService.refresh(httpRequest, httpResponse));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<MessageResponse> logout(
             HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse
-    ) {
+            HttpServletResponse httpResponse) {
         authenticationService.logout(httpRequest, httpResponse);
         return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
     }
@@ -70,8 +66,7 @@ public class AuthenticationController {
     @PostMapping("/logout-all")
     public ResponseEntity<MessageResponse> logoutAll(
             @AuthenticationPrincipal User user,
-            HttpServletResponse httpResponse
-    ) {
+            HttpServletResponse httpResponse) {
         authenticationService.logoutAll(user, httpResponse);
         return ResponseEntity.ok(new MessageResponse("Logged out from all devices"));
     }
@@ -108,9 +103,8 @@ public class AuthenticationController {
 
     @PostMapping("/change-password")
     public ResponseEntity<MessageResponse> changePassword(
-            @Valid @RequestBody ChangePasswordRequest request,
-            @AuthenticationPrincipal User user
-    ) {
+            @Valid @RequestBody UpdatePasswordRequest request,
+            @AuthenticationPrincipal User user) {
         authenticationService.changePassword(user, request);
         return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
     }

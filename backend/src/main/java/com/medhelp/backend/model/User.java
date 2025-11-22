@@ -55,6 +55,12 @@ public class User implements UserDetails {
     @Column(name = "postal_code")
     private String postalCode;
 
+    @Column(name = "country")
+    private String country;
+
+    @Column(name = "profile_picture")
+    private String profilePicture;
+
     @Column(name = "password_hash", nullable = false)
     private String password;
 
@@ -81,11 +87,7 @@ public class User implements UserDetails {
     private LocalDateTime emailVerifiedAt;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
     @ManyToOne(fetch = FetchType.LAZY)

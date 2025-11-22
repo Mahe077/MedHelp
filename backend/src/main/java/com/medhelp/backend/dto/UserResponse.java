@@ -24,6 +24,8 @@ public class UserResponse {
     private String city;
     private String state;
     private String postalCode;
+    private String country;
+    private String profilePicture;
     private List<String> roles;
     private List<String> permissions;
     private String branchName;

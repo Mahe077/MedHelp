@@ -22,9 +22,9 @@ export enum UserRole {
     ADMIN = "ADMIN",
 }
 
-export interface UserType {
-    CUSTOMER: "CUSTOMER"
-    EMPLOYEE: "EMPLOYEE"
+export enum UserType {
+    INTERNAL = "INTERNAL",
+    EXTERNAL = "EXTERNAL",
 }
 
 export interface User {
@@ -33,7 +33,17 @@ export interface User {
     roles: string[]
     permissions: string[]
     branchName: string
-    userType: "INTERNAL" | "EXTERNAL"
+    userType: UserType
     isTwoFactorEnabled: boolean
+    firstName: string
+    lastName: string
+    phone: string
+    dateOfBirth: string
+    address: string
+    city: string
+    state: string
+    postalCode: string
+    country: string
+    profilePicture: string
     // ... other fields can remain or be optional if not returned by /me yet
 }

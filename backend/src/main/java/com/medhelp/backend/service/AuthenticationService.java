@@ -57,7 +57,10 @@ public class AuthenticationService {
      * Register new user
      */
     @Transactional
-    public LoginResponse register(RegisterRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+    public LoginResponse register(
+            RegisterRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
         // Check if email already exists
         if (userService.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
@@ -106,9 +109,9 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .roles(Set.of(role))
                 .branch(branch)
-                .userType(request.getUserType() != null ? request.getUserType() : 
-                          (role.getName().equals("PATIENT") ? UserType.EXTERNAL : UserType.INTERNAL))
-                .enabled(isEnabled) 
+                .userType(request.getUserType() != null ? request.getUserType()
+                        : (role.getName().equals("PATIENT") ? UserType.EXTERNAL : UserType.INTERNAL))
+                .enabled(isEnabled)
                 .emailVerified(isEnabled)
                 .accountLocked(false)
                 .failedLoginAttempts(0)
@@ -151,8 +154,7 @@ public class AuthenticationService {
         try {
             // Authenticate
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword()));
 
             user = userService.getUserByEmail(email);
         } catch (Exception e) {
@@ -168,7 +170,8 @@ public class AuthenticationService {
                 if (isLocked) {
                     emailService.sendAccountLockedEmail(failedUser, lockDurationMinutes);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             throw new BadCredentialsException("Invalid email or password");
         }
@@ -208,7 +211,11 @@ public class AuthenticationService {
 
         // Generate tokens
         String accessToken = jwtUtils.generateAccessToken(user);
-        String refreshToken = tokenService.createRefreshToken(user, request.getDeviceFingerprint(), ipAddress, userAgent);
+        String refreshToken = tokenService.createRefreshToken(
+                user,
+                request.getDeviceFingerprint(),
+                ipAddress,
+                userAgent);
 
         // Set refresh token cookie
         tokenService.setRefreshTokenCookie(httpResponse, refreshToken);
@@ -255,7 +262,7 @@ public class AuthenticationService {
 
         // Generate tokens
         String accessToken = jwtUtils.generateAccessToken(user);
-        String refreshToken = tokenService.createRefreshToken(user, session.getDeviceFingerprint(), 
+        String refreshToken = tokenService.createRefreshToken(user, session.getDeviceFingerprint(),
                 session.getIpAddress(), session.getUserAgent());
 
         // Set refresh token cookie
@@ -298,7 +305,7 @@ public class AuthenticationService {
 
         // The rotation already created a new refresh token, get it
         // For simplicity, we'll create another one here (in production, optimize this)
-        String newRefreshToken = tokenService.createRefreshToken(user, 
+        String newRefreshToken = tokenService.createRefreshToken(user,
                 refreshToken.getDeviceFingerprint(),
                 refreshToken.getIpAddress(),
                 refreshToken.getUserAgent());
@@ -344,7 +351,12 @@ public class AuthenticationService {
      * Change password
      */
     @Transactional
-    public void changePassword(User user, ChangePasswordRequest request) {
+    public void changePassword(User user, UpdatePasswordRequest request) {
+        // Verify passwords match
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("New passwords do not match");
+        }
+
         // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadCredentialsException("Current password is incorrect");
@@ -395,6 +407,8 @@ public class AuthenticationService {
                 .city(user.getCity())
                 .state(user.getState())
                 .postalCode(user.getPostalCode())
+                .country(user.getCountry())
+                .profilePicture(user.getProfilePicture())
                 .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
                 .permissions(user.getAuthorities().stream()
                         .map(auth -> auth.getAuthority())
