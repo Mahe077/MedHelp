@@ -42,8 +42,7 @@ export const CreateUserSchema = z.object({
   memberSince: z.string().optional(),
   preferredBranchId: z.number().optional(),
   branchId: z.number().optional(),
-  // Make role optional – the form supplies a default value.
-  role: z.string().optional().default("PATIENT"),
+  role: z.string().min(1, "At least one role is required"),
   createdBy: z.number().optional(),
 });
 

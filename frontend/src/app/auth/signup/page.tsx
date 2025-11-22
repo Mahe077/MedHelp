@@ -46,7 +46,7 @@ export default function SignupPage() {
         trigger,
         control,
         watch,
-    } = useForm<Partial<CreateUserInput>>({
+    } = useForm<CreateUserInput>({
         resolver: zodResolver(CreateUserSchema),
         mode: "onChange",
         defaultValues: {
