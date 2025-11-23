@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/app:cached
+      - ~/.m2:/home/vscode/.m2
+    command: sleep infinity
+    networks:
+      - medhelp-network
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${DB_NAME:-medhelp}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - medhelp-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - medhelp-network
+
+networks:
+  medhelp-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:

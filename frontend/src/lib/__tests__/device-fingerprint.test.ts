@@ -1,8 +1,16 @@
-import { generateDeviceFingerprint } from '../device-fingerprint'
+import { getDeviceFingerprint } from '../device-fingerprint'
+
+jest.mock('@fingerprintjs/fingerprintjs', () => ({
+  load: jest.fn().mockResolvedValue({
+    get: jest.fn().mockResolvedValue({
+      visitorId: 'mock-visitor-id',
+    }),
+  }),
+}))
 
 describe('Device Fingerprint', () => {
   it('generates a fingerprint', async () => {
-    const fingerprint = await generateDeviceFingerprint()
+    const fingerprint = await getDeviceFingerprint()
     
     expect(fingerprint).toBeDefined()
     expect(typeof fingerprint).toBe('string')
@@ -10,9 +18,10 @@ describe('Device Fingerprint', () => {
   })
 
   it('generates consistent fingerprints for same device', async () => {
-    const fingerprint1 = await generateDeviceFingerprint()
-    const fingerprint2 = await generateDeviceFingerprint()
+    const fingerprint1 = await getDeviceFingerprint()
+    const fingerprint2 = await getDeviceFingerprint()
     
     expect(fingerprint1).toBe(fingerprint2)
   })
 })
+

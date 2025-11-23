@@ -8,7 +8,7 @@ describe('Validation Schemas', () => {
         firstName: 'Test',
         lastName: 'User',
         email: 'test@example.com',
-        password: 'Password123!',
+        password: 'Password123@',
         phone: '+1234567890',
         role: 'PATIENT',
       }
@@ -74,7 +74,7 @@ describe('Validation Schemas', () => {
         firstName: 'Test',
         lastName: 'User',
         email: 'test@example.com',
-        password: 'Password123!',
+        password: 'Password123@',
         phone: '+1234567890',
         dateOfBirth: '1990-01-01',
         gender: 'MALE',

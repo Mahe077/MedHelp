@@ -30,3 +30,6 @@ export async function getDeviceFingerprint(): Promise<string> {
 export function clearDeviceFingerprint() {
   fingerprintPromise = null;
 }
+
+// Alias for compatibility with existing tests
+export const generateDeviceFingerprint = getDeviceFingerprint;
